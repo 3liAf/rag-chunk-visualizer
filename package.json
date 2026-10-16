@@ -1,0 +1,36 @@
+{
+  "name": "rag-chunk-visualizer",
+  "version": "1.0.0",
+  "description": "Interactive RAG chunking visualizer & overlap inspector. Built by AstraMeld & Ali Afzal Yousuf.",
+  "main": "dist/index.js",
+  "type": "module",
+  "author": {
+    "name": "Ali Afzal Yousuf",
+    "url": "https://astrameld.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3liAf/rag-chunk-visualizer.git"
+  },
+  "homepage": "https://astrameld.com",
+  "license": "MIT",
+  "keywords": [
+    "rag",
+    "chunking",
+    "langchain",
+    "llamaindex",
+    "llm",
+    "embeddings",
+    "astrameld",
+    "developer-tools",
+    "nlp"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

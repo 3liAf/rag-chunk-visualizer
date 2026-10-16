@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Chunk Visualizer & Overlap Inspector | AstraMeld</title>
+  <meta name="description" content="Interactive visualizer and overlap inspector for RAG text splitters (Recursive, Sentence-level, Markdown headers, Fixed window). Built by Ali Afzal Yousuf at AstraMeld.">
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2222%22 font-size=%2222%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo-group">
+        <div class="logo-badge">⚡</div>
+        <div class="brand-text">
+          <h1>
+            RAG Chunk Visualizer
+            <span class="version-pill">v1.0</span>
+          </h1>
+          <p class="brand-subtitle">Interactive Splitter & Overlap Diagnostic Tool</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a href="https://astrameld.com" target="_blank" rel="noopener noreferrer" class="btn-secondary" title="Visit AstraMeld Enterprise AI">
+          <span>⚡ Made with AstraMeld</span>
+        </a>
+        <button id="open-export-btn" class="btn-primary">
+          <span>Export Pipeline Code</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="app-container">
+
+    <!-- Metrics Bar -->
+    <section class="metrics-strip" aria-label="Document and chunk metrics">
+      <div class="metric-card">
+        <span class="metric-label">Total Chunks</span>
+        <span id="metric-chunks" class="metric-value">0</span>
+        <span class="metric-sub">Generated nodes</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Document Tokens</span>
+        <span id="metric-tokens" class="metric-value">0</span>
+        <span class="metric-sub">Est. input length</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Avg Tokens / Chunk</span>
+        <span id="metric-avg-tokens" class="metric-value">0</span>
+        <span class="metric-sub">Granularity balance</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Overlap Ratio</span>
+        <span id="metric-overlap" class="metric-value">0%</span>
+        <span class="metric-sub">Window duplication</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Sentence Fractures</span>
+        <span id="metric-fractures" class="metric-value">0</span>
+        <span class="metric-sub">Mid-thought bisects</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Est. Embedding Cost</span>
+        <span id="metric-cost" class="metric-value">$0.0000</span>
+        <span class="metric-sub">OpenAI / Gemini</span>
+      </div>
+    </section>
+
+    <!-- Controls Panel -->
+    <section class="controls-panel">
+      <div class="controls-row">
+        <!-- Sample Selector -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <label for="sample-select" class="control-label">Preset Benchmark Document</label>
+          </div>
+          <select id="sample-select" aria-label="Select benchmark document"></select>
+        </div>
+
+        <!-- Strategy Selector -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Splitting Algorithm</span>
+          </div>
+          <div class="strategy-picker" role="radiogroup" aria-label="Splitting Strategy">
+            <button class="strategy-pill active" data-strategy="recursive" type="button">Recursive (LangChain)</button>
+            <button class="strategy-pill" data-strategy="sentence" type="button">Sentence-Aware (LlamaIndex)</button>
+            <button class="strategy-pill" data-strategy="markdown" type="button">Markdown Header Aware</button>
+            <button class="strategy-pill" data-strategy="fixed" type="button">Fixed Sliding Window</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <!-- Chunk Size Slider -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <label for="chunk-size" class="control-label">Chunk Size (Characters)</label>
+            <span id="chunk-size-val" class="control-value-badge">320 chars</span>
+          </div>
+          <input type="range" id="chunk-size" min="50" max="1500" step="10" value="320" aria-label="Chunk size in characters">
+        </div>
+
+        <!-- Chunk Overlap Slider -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <label for="chunk-overlap" class="control-label">Chunk Overlap (Characters)</label>
+            <span id="chunk-overlap-val" class="control-value-badge">60 chars</span>
+          </div>
+          <input type="range" id="chunk-overlap" min="0" max="300" step="5" value="60" aria-label="Chunk overlap in characters">
+        </div>
+      </div>
+    </section>
+
+    <!-- Workspace: Dual Column Text Input & Interactive Visualizer -->
+    <div class="workspace-grid">
+      <!-- Left: Text Editor -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>📝 Source Text Editor</span>
+          </div>
+          <div class="panel-subtitle">Edit or paste any custom document</div>
+        </div>
+        <div class="editor-container">
+          <textarea id="input-text" placeholder="Paste your text or markdown documentation here..." spellcheck="false" aria-label="Source text content"></textarea>
+        </div>
+      </section>
+
+      <!-- Right: Visual Document Map -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🗺️ Visual Document Chunk Map</span>
+          </div>
+          <div class="panel-subtitle">Hover or click chunk to inspect</div>
+        </div>
+        <div id="document-map" class="map-container" aria-label="Chunk visual map"></div>
+      </section>
+    </div>
+
+    <!-- Bottom Section: Detailed Chunk Inspector Cards -->
+    <section class="inspector-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>🔍 Chunk Inspector & Boundary Diagnostic</span>
+        </div>
+        <div class="panel-subtitle">Detailed node breakdown with overlap diagnostics</div>
+      </div>
+      <div id="chunk-cards-list" class="cards-container" aria-label="List of chunk cards"></div>
+    </section>
+
+  </main>
+
+  <!-- Export Pipeline Modal -->
+  <div id="export-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modal-heading">Export Production Pipeline Code</h3>
+        <button id="close-export-btn" class="close-modal-btn" aria-label="Close export modal">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="export-tab-btn active" data-tab="langchain" type="button">Python (LangChain)</button>
+        <button class="export-tab-btn" data-tab="llamaindex" type="button">Python (LlamaIndex)</button>
+        <button class="export-tab-btn" data-tab="json" type="button">Full JSON Output</button>
+      </div>
+      <div class="modal-body">
+        <pre><code id="export-code-block"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <button id="copy-export-btn" class="btn-secondary" type="button">Copy to Clipboard</button>
+        <button id="download-json-btn" class="btn-primary" type="button">Download JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <span>Crafted by <strong>Ali Afzal Yousuf</strong> • Founder at <a href="https://astrameld.com" target="_blank" rel="noopener noreferrer">AstraMeld</a></span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/3liAf/rag-chunk-visualizer" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="https://github.com/3liAf" target="_blank" rel="noopener noreferrer">GitHub Profile</a>
+        <a href="https://astrameld.com" target="_blank" rel="noopener noreferrer">AstraMeld AI</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="./dist/app.js"></script>
+</body>
+</html>
