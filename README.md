@@ -60,10 +60,20 @@ python3 -m http.server 8000
 ```
 Then visit `http://localhost:8000`.
 
-### 2. Run Tests & Build
+### 2. Run Tests & Coverage
 ```bash
 npm install
+
+# Run unit tests (33 tests, ~800ms)
 npm test
+
+# Run unit tests with detailed coverage report (>98% coverage)
+npm run test:coverage
+
+# Run Playwright E2E tests (Desktop + Mobile Chrome)
+npm run test:e2e
+
+# Production build
 npm run build
 ```
 
@@ -87,9 +97,14 @@ rag-chunk-visualizer/
 ├── styles/
 │   └── main.css              # Dark-mode first UI styling
 ├── tests/
-│   └── splitters.test.ts     # Vitest unit test suite (11/11 passing)
+│   ├── splitters.test.ts     # Vitest unit test suite (splitters, boundary conditions, code gen)
+│   └── samples.test.ts       # Benchmark documents integrity tests
+├── e2e/
+│   └── visualizer.spec.ts    # Playwright end-to-end user journey tests
 ├── dist/                     # Compiled ES modules
 ├── index.html                # Main application interface
+├── playwright.config.ts      # Playwright test configuration
+├── vitest.config.ts          # Vitest coverage and runner configuration
 └── package.json
 ```
 
